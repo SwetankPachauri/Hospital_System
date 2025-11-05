@@ -1,6 +1,6 @@
 # 🏥 Hospital Management System
 
-A modern, full-stack Hospital Management System built with React, Node.js, and LowDB. Features a beautiful UI with dark mode, comprehensive patient/doctor management, appointment scheduling, and billing functionality.
+A modern, full-stack Hospital Management System built with React, Node.js, and MongoDB. Features a beautiful UI with dark mode, comprehensive patient/doctor management, appointment scheduling, and billing functionality.
 
 ## ✨ Features
 
@@ -19,7 +19,7 @@ A modern, full-stack Hospital Management System built with React, Node.js, and L
 - 🚀 **RESTful API** - Clean, organized Express.js backend
 - 🔒 **JWT Authentication** - Secure token-based auth system
 - 👮 **Role-Based Authorization** - Middleware for access control
-- 💾 **LowDB Database** - Lightweight JSON-based database
+- 💾 **MongoDB Database** - NoSQL database with Mongoose ODM
 - ✅ **Input Validation** - Comprehensive request validation
 - 🛡️ **Error Handling** - Centralized error management
 - 📝 **Request Logging** - Track all API requests
@@ -47,7 +47,8 @@ A modern, full-stack Hospital Management System built with React, Node.js, and L
 ### Backend
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
-- **LowDB** - JSON database
+- **MongoDB** - NoSQL database
+- **Mongoose** - MongoDB object modeling
 - **JWT** - Authentication
 - **Bcrypt** - Password hashing
 - **CORS** - Cross-origin resource sharing
@@ -56,6 +57,7 @@ A modern, full-stack Hospital Management System built with React, Node.js, and L
 
 - Node.js 16.x or higher
 - npm or yarn
+- MongoDB 4.4 or higher
 
 ## 🚀 Installation & Setup
 
@@ -73,6 +75,17 @@ cd backend
 
 # Install dependencies (already done)
 npm install
+
+# Create a .env file with your MongoDB connection string
+echo "MONGODB_URI=mongodb://localhost:27017/hospitalDB" > .env
+echo "JWT_SECRET=your-secret-key-change-this-in-production" >> .env
+echo "PORT=3000" >> .env
+
+# Make sure MongoDB is running
+# On macOS/Linux, start MongoDB with:
+# brew services start mongodb-community
+# or
+# sudo systemctl start mongod (on Linux)
 
 # Start the server
 npm start
@@ -150,7 +163,7 @@ HOSPITAL/
 │
 ├── backend/                  # Express backend
 │   ├── config/
-│   │   └── database.js      # LowDB configuration
+│   │   └── database.js      # MongoDB configuration
 │   ├── controllers/         # Request handlers
 │   │   ├── authController.js
 │   │   ├── patientController.js
@@ -160,6 +173,13 @@ HOSPITAL/
 │   │   └── statsController.js
 │   ├── middleware/          # Custom middleware
 │   │   └── auth.js
+│   ├── models/              # Mongoose models
+│   │   ├── User.js
+│   │   ├── Patient.js
+│   │   ├── Doctor.js
+│   │   ├── Appointment.js
+│   │   ├── Bill.js
+│   │   └── index.js
 │   ├── routes/              # API routes
 │   │   ├── auth.js
 │   │   ├── patients.js
@@ -167,8 +187,9 @@ HOSPITAL/
 │   │   ├── appointments.js
 │   │   ├── billing.js
 │   │   └── stats.js
+│   ├── scripts/             # Utility scripts
+│   │   └── migrateData.js   # Data migration script
 │   ├── server.js            # Entry point
-│   ├── db.json              # LowDB database (auto-generated)
 │   ├── package.json
 │   └── .env
 │
@@ -267,6 +288,7 @@ HOSPITAL/
 4. Set start command: `cd backend && npm start`
 5. Add environment variables:
    - `PORT`: 3000
+   - `MONGODB_URI`: Your MongoDB connection string
    - `JWT_SECRET`: Your secret key
    - `NODE_ENV`: production
 
@@ -280,22 +302,24 @@ VITE_API_URL=http://localhost:3000/api
 ### Backend (.env)
 ```env
 PORT=3000
+MONGODB_URI=mongodb://localhost:27017/hospitalDB
 JWT_SECRET=your-secret-key-change-this-in-production
 NODE_ENV=development
 ```
 
 ## 🧪 Testing
 
-1. **Start both servers** (backend on :3000, frontend on :5173)
-2. **Login** with default credentials
-3. **Test each module:**
+1. **Start MongoDB service**
+2. **Start both servers** (backend on :3000, frontend on :5173)
+3. **Login** with default credentials
+4. **Test each module:**
    - Create a new patient
    - Add a doctor
    - Schedule an appointment
    - Generate a bill
    - View dashboard statistics
-4. **Test dark mode** toggle
-5. **Test responsive design** (resize browser or use mobile)
+5. **Test dark mode** toggle
+6. **Test responsive design** (resize browser or use mobile)
 
 ## 📝 Development Scripts
 
@@ -310,6 +334,7 @@ npm run preview  # Preview production build
 ```bash
 npm start        # Start server
 npm run dev      # Start with auto-reload (requires --watch flag)
+npm run migrate  # Run data migration script
 ```
 
 ## 🐛 Troubleshooting
@@ -323,15 +348,15 @@ lsof -ti:3000 | xargs kill -9
 lsof -ti:5173 | xargs kill -9
 ```
 
+### MongoDB Connection Issues
+- Ensure MongoDB is running locally or provide a valid MongoDB Atlas URI
+- Check MONGODB_URI in backend/.env
+- Verify MongoDB installation and service status
+
 ### CORS Issues
 - Ensure backend is running on port 3000
 - Check VITE_API_URL in frontend/.env
 - Verify CORS is enabled in backend/server.js
-
-### Database Not Initializing
-- Delete `backend/db.json` and restart backend
-- Check file permissions
-- Verify LowDB installation
 
 ## 🚀 Future Enhancements
 
@@ -356,4 +381,4 @@ Built with ❤️ using React, Node.js, and modern web technologies.
 
 ---
 
-**Note:** This is a demo application. For production use, implement additional security measures, use a proper database (PostgreSQL/MongoDB), add comprehensive testing, and follow security best practices.
+**Note:** This is a demo application. For production use, implement additional security measures, use a proper database (MongoDB with authentication), add comprehensive testing, and follow security best practices.

@@ -1,9 +1,9 @@
-import db from '../config/database.js';
+import Bill from '../models/Bill.js';
 
 export const getAllBills = async (req, res) => {
   try {
-    await db.read();
-    res.json(db.data.bills);
+    const bills = await Bill.find();
+    res.json(bills);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -11,8 +11,7 @@ export const getAllBills = async (req, res) => {
 
 export const getBillById = async (req, res) => {
   try {
-    await db.read();
-    const bill = db.data.bills.find(b => b.id === req.params.id);
+    const bill = await Bill.findById(req.params.id);
     
     if (!bill) {
       return res.status(404).json({ message: 'Bill not found' });
@@ -32,18 +31,14 @@ export const createBill = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    await db.read();
-
-    const newBill = {
-      id: String(Date.now()),
+    const newBill = new Bill({
       patientId,
       items,
       total: parseFloat(total),
       date
-    };
+    });
 
-    db.data.bills.push(newBill);
-    await db.write();
+    await newBill.save();
 
     res.status(201).json(newBill);
   } catch (error) {
@@ -53,8 +48,8 @@ export const createBill = async (req, res) => {
 
 export const getBillsByPatient = async (req, res) => {
   try {
-    await db.read();
-    const bills = db.data.bills.filter(b => b.patientId === req.params.patientId);
+    const { patientId } = req.params;
+    const bills = await Bill.find({ patientId });
     res.json(bills);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

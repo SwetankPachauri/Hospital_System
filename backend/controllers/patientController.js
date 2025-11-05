@@ -1,9 +1,9 @@
-import db from '../config/database.js';
+import Patient from '../models/Patient.js';
 
 export const getAllPatients = async (req, res) => {
   try {
-    await db.read();
-    res.json(db.data.patients);
+    const patients = await Patient.find();
+    res.json(patients);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -11,8 +11,7 @@ export const getAllPatients = async (req, res) => {
 
 export const getPatientById = async (req, res) => {
   try {
-    await db.read();
-    const patient = db.data.patients.find(p => p.id === req.params.id);
+    const patient = await Patient.findById(req.params.id);
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
@@ -32,20 +31,16 @@ export const createPatient = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    await db.read();
-
-    const newPatient = {
-      id: String(Date.now()),
+    const newPatient = new Patient({
       name,
       age: parseInt(age),
       gender,
       contact,
       diagnosis,
       admittedDate
-    };
+    });
 
-    db.data.patients.push(newPatient);
-    await db.write();
+    await newPatient.save();
 
     res.status(201).json(newPatient);
   } catch (error) {
@@ -57,27 +52,22 @@ export const updatePatient = async (req, res) => {
   try {
     const { name, age, gender, contact, diagnosis, admittedDate } = req.body;
 
-    await db.read();
-
-    const index = db.data.patients.findIndex(p => p.id === req.params.id);
+    const patient = await Patient.findById(req.params.id);
     
-    if (index === -1) {
+    if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
 
-    db.data.patients[index] = {
-      ...db.data.patients[index],
-      name: name || db.data.patients[index].name,
-      age: age ? parseInt(age) : db.data.patients[index].age,
-      gender: gender || db.data.patients[index].gender,
-      contact: contact || db.data.patients[index].contact,
-      diagnosis: diagnosis || db.data.patients[index].diagnosis,
-      admittedDate: admittedDate || db.data.patients[index].admittedDate
-    };
+    patient.name = name || patient.name;
+    patient.age = age ? parseInt(age) : patient.age;
+    patient.gender = gender || patient.gender;
+    patient.contact = contact || patient.contact;
+    patient.diagnosis = diagnosis || patient.diagnosis;
+    patient.admittedDate = admittedDate || patient.admittedDate;
 
-    await db.write();
+    await patient.save();
 
-    res.json(db.data.patients[index]);
+    res.json(patient);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -85,16 +75,11 @@ export const updatePatient = async (req, res) => {
 
 export const deletePatient = async (req, res) => {
   try {
-    await db.read();
-
-    const index = db.data.patients.findIndex(p => p.id === req.params.id);
+    const patient = await Patient.findByIdAndDelete(req.params.id);
     
-    if (index === -1) {
+    if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
-
-    db.data.patients.splice(index, 1);
-    await db.write();
 
     res.json({ message: 'Patient deleted successfully' });
   } catch (error) {

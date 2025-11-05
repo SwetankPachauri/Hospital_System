@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initializeDB } from './config/database.js';
+import { connectDB } from './config/database.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -54,8 +54,8 @@ app.use((err, req, res, next) => {
 // Initialize database and start server
 const startServer = async () => {
   try {
-    await initializeDB();
-    console.log('✅ Database initialized successfully');
+    await connectDB();
+    console.log('✅ Database connected successfully');
 
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);

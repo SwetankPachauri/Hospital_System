@@ -1,9 +1,9 @@
-import db from '../config/database.js';
+import Appointment from '../models/Appointment.js';
 
 export const getAllAppointments = async (req, res) => {
   try {
-    await db.read();
-    res.json(db.data.appointments);
+    const appointments = await Appointment.find();
+    res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -11,8 +11,7 @@ export const getAllAppointments = async (req, res) => {
 
 export const getAppointmentById = async (req, res) => {
   try {
-    await db.read();
-    const appointment = db.data.appointments.find(a => a.id === req.params.id);
+    const appointment = await Appointment.findById(req.params.id);
     
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
@@ -32,19 +31,15 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    await db.read();
-
-    const newAppointment = {
-      id: String(Date.now()),
+    const newAppointment = new Appointment({
       patientId,
       doctorId,
       date,
       time,
       status
-    };
+    });
 
-    db.data.appointments.push(newAppointment);
-    await db.write();
+    await newAppointment.save();
 
     res.status(201).json(newAppointment);
   } catch (error) {
@@ -56,26 +51,21 @@ export const updateAppointment = async (req, res) => {
   try {
     const { patientId, doctorId, date, time, status } = req.body;
 
-    await db.read();
-
-    const index = db.data.appointments.findIndex(a => a.id === req.params.id);
+    const appointment = await Appointment.findById(req.params.id);
     
-    if (index === -1) {
+    if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
-    db.data.appointments[index] = {
-      ...db.data.appointments[index],
-      patientId: patientId || db.data.appointments[index].patientId,
-      doctorId: doctorId || db.data.appointments[index].doctorId,
-      date: date || db.data.appointments[index].date,
-      time: time || db.data.appointments[index].time,
-      status: status || db.data.appointments[index].status
-    };
+    appointment.patientId = patientId || appointment.patientId;
+    appointment.doctorId = doctorId || appointment.doctorId;
+    appointment.date = date || appointment.date;
+    appointment.time = time || appointment.time;
+    appointment.status = status || appointment.status;
 
-    await db.write();
+    await appointment.save();
 
-    res.json(db.data.appointments[index]);
+    res.json(appointment);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -83,16 +73,11 @@ export const updateAppointment = async (req, res) => {
 
 export const deleteAppointment = async (req, res) => {
   try {
-    await db.read();
-
-    const index = db.data.appointments.findIndex(a => a.id === req.params.id);
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
     
-    if (index === -1) {
+    if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
-
-    db.data.appointments.splice(index, 1);
-    await db.write();
 
     res.json({ message: 'Appointment deleted successfully' });
   } catch (error) {
@@ -102,8 +87,8 @@ export const deleteAppointment = async (req, res) => {
 
 export const getAppointmentsByDate = async (req, res) => {
   try {
-    await db.read();
-    const appointments = db.data.appointments.filter(a => a.date === req.params.date);
+    const { date } = req.params;
+    const appointments = await Appointment.find({ date });
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -112,8 +97,8 @@ export const getAppointmentsByDate = async (req, res) => {
 
 export const getAppointmentsByDoctor = async (req, res) => {
   try {
-    await db.read();
-    const appointments = db.data.appointments.filter(a => a.doctorId === req.params.doctorId);
+    const { doctorId } = req.params;
+    const appointments = await Appointment.find({ doctorId });
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -122,8 +107,8 @@ export const getAppointmentsByDoctor = async (req, res) => {
 
 export const getAppointmentsByPatient = async (req, res) => {
   try {
-    await db.read();
-    const appointments = db.data.appointments.filter(a => a.patientId === req.params.patientId);
+    const { patientId } = req.params;
+    const appointments = await Appointment.find({ patientId });
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
